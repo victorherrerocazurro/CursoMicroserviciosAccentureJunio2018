@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,19 +18,25 @@ import org.springframework.web.client.RestTemplate;
 
 @RestController
 @RequestMapping("/Saludos")
+@RefreshScope
 public class SaludosController {
 
 	@Autowired
 	private RestTemplate restTemplate;
 	
+	@Autowired
+	private AlmacenSaludosService almacenSaludos;
+	
 	@GetMapping("/hola")
 	public ResponseEntity<SaludoOut> hola(
 			@RequestParam(name="name", required=false, defaultValue="World") String name) {
 		
-		Map<String, String> uriVariables = new HashMap<>();
-		uriVariables.put("tipo", "hola");
+		//Map<String, String> uriVariables = new HashMap<>();
+		//uriVariables.put("tipo", "hola");
 		
-		SaludoIn response = restTemplate.getForObject("http://localhost:8092/Saludos/{tipo}", SaludoIn.class, uriVariables);
+		//SaludoIn response = restTemplate.getForObject("http://almacensaludos/Saludos/{tipo}", SaludoIn.class, uriVariables);
+		
+		SaludoIn response = almacenSaludos.saludos("hola");
 		
 		String saludo = response.getPrefijo() + " " + name + response.getSufijo();
 		
@@ -41,5 +49,15 @@ public class SaludosController {
 		System.out.println(saludo);
 		return new ResponseEntity<Void>(HttpStatus.OK);
 	}
+	
+	@Value("${message:Hola Mundo!!!}")
+	private String mensaje;
+	
+	@GetMapping("/holaMundo")
+	public ResponseEntity<SaludoOut> holaMundo() {
+		return new ResponseEntity<SaludoOut>(new SaludoOut(mensaje), HttpStatus.OK);
+
+	}
+
 
 }
